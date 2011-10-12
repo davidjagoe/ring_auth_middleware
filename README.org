@@ -1,0 +1,9 @@
+* Ring Authentication Middleware
+
+See ./documentation/specification.pdf
+
+* Licence
+
+Copyright (C) 2011 Rheo Systems
+
+Distributed under the Eclipse Public License, the same as Clojure.
