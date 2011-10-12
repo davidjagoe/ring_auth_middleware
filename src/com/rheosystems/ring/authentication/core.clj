@@ -1,19 +1,13 @@
-(ns ^{:doc "Implements Module Authentication 1.0"}
-  clj-rheo.middleware.authentication.core
+(ns ^{:doc "Authentication middleware for ring. See the accompanying specification."}
+  com.rheosystems.ring.authentication.core
   
-  (:require [clj-rheo.middleware.authentication.user-repository :as udb]))
-
-;;; This module depends on:
-;;;
-;;; - ring.middleware.params
-;;; - ring.middleware.keyword-params
-;;; - ring.middleware.session
+  (:require [com.rheosystems.ring.authentication.user-repository :as udb]))
 
 ;;; *user* is the interface to the rest of the application - always
 ;;; bound to a valid user by the authentication middleware (this
 ;;; module). That user may be anonymous or an authenticated system
 ;;; user.
-(def *user*)
+(def ^:dynamic *user*)
 
 (defn from-req
   "Return the parameter from the request.
@@ -108,7 +102,7 @@
 ;;; Utils
 ;;; -----
 
-(defn *curr-time* []
+(defn ^:dynamic *curr-time* []
   (System/currentTimeMillis))
 
 ;;; Module Outputs
@@ -232,11 +226,14 @@
   (let [config (merge DEFAULT-CONFIG config)
         write-log (make-log-writer logger)]
     (fn [req]
-      ;; T is a Trace as defined in the Trace Function Method. It is
-      ;; used to transport the inputs, and store the intermediate
-      ;; outputs (as a per-request cache) in the case of expensive
-      ;; functions. This approach allows the code to be written in a
-      ;; per-output manner without compromising performance.
+      ;; T is a Trace analogous to a trace in the Trace Function
+      ;; Method. It is used to transport the inputs, and store the
+      ;; intermediate outputs (as a per-request cache) in the case of
+      ;; expensive functions. This approach allows the code to be
+      ;; written in a per-output manner without compromising
+      ;; performance. You can see that the interface to logged-in-user
+      ;; is different at the moment (it is the only one to return a
+      ;; T), which could be improved.
       (let [T {:req req :repo user-repository :config config}]
         (let [no-expire (no-expire            T)
               tolr      (time-of-this-request T)

@@ -2,6 +2,15 @@
 
 See ./documentation/specification.pdf
 
+* Usage
+
+To use this module in a ring application you will need to have the
+following additional components in the middleware stack:
+
+- ring.middleware.params
+- ring.middleware.keyword-params
+- ring.middleware.session (if you want login sessions)
+
 * Licence
 
 Copyright (C) 2011 Rheo Systems
