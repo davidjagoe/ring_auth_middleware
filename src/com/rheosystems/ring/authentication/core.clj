@@ -30,11 +30,11 @@
             :time-of-last-request (session :time-of-last-request)
             :logged-in-user       (session :logged-in-user)
             :no-expire            (session :no-expire)
-            :username             (form-param :username)
-            :password             (form-param :password)
-            :remember-me          (form-param :remember-me)
-            :uid                  (query-param :uid)
-            :key                  (query-param :key))))
+            :username             (form-param "username")
+            :password             (form-param "password")
+            :remember-me          (form-param "remember-me")
+            :uid                  (query-param "uid")
+            :key                  (query-param "key"))))
 
 (defn update-session
   "Updates the session in the response with the supplied attribute map.
@@ -83,6 +83,12 @@
 (defn per-req-authentication?
   "Returns true if the supplied request is a valid request for a single request authentication."
   [{:keys [req config] :as T}]
+  (println "per req?")
+  (println (login? T))
+  (println (logout? T))
+  (println (active-login-session? T))
+  (println req)
+  (println (from-req req :uid))
   (and
    (not (or (login? T)
             (logout? T)
@@ -226,6 +232,7 @@
   (let [config (merge DEFAULT-CONFIG config)
         write-log (make-log-writer logger)]
     (fn [req]
+      (println "RUNNING MIDDLEWARE")
       ;; T is a Trace analogous to a trace in the Trace Function
       ;; Method. It is used to transport the inputs, and store the
       ;; intermediate outputs (as a per-request cache) in the case of
