@@ -7,37 +7,37 @@
 
 (def accounts
      (atom
-      {:david {:username "david" :password "snowy"}
-       :cabinet1 {:username "cabinet1" :password "12345"}}))
+      {:david {"username" "david" "password" "snowy"}
+       :cabinet1 {"username" "cabinet1" "password" "12345"}}))
 
 (defn convert-identifier [identifier]
   (if (string? identifier)
-    (keyword identifier)
-    (keyword (:username identifier))))
+    identifier
+    (get identifier "username")))
 
 (def anon {:name "Anonymous User"})
 
 (defrecord FakeUserRepository []
   UserRepository
 
-  (user? [this user] (contains? user :username))
+  (user? [this user] (contains? user "username"))
   
   (anonymous [this] anon)
 
   (find-login-account
    [this identifier]
-   (let [id (convert-identifier identifier)]
+   (let [id (keyword (convert-identifier identifier))]
      (get @accounts id)))
 
   (find-active-account
    [this identifier]
-   (let [id (convert-identifier identifier)]
+   (let [id (keyword (convert-identifier identifier))]
      (get @accounts id)))
 
   (verify-password
    [this identifier pw]
-   (let [id (convert-identifier identifier)]
-     (= pw (:password (get @accounts id))))))
+   (let [id (keyword (convert-identifier identifier))]
+     (= pw (get (get @accounts id) "password")))))
 
 (defrecord EmptyRepository []
   UserRepository
@@ -67,7 +67,7 @@
 (def base-login-request
      {:uri "/login"
       :request-method :post
-      :form-params {:username "david" :password "snowy"}})
+      :form-params {"username" "david" "password" "snowy"}})
 
 (def base-login-response
      {:session {:logged-in-user (:david @accounts)
@@ -77,7 +77,7 @@
 (def req base-login-request)
 
 (def single-auth-request
-     {:query-params {:uid "cabinet1" :key "12345"}})
+     {:query-params {"uid" "cabinet1" "key" "12345"}})
 
 (def base-session-request
      {:session {:logged-in-user (:david @accounts)
@@ -85,7 +85,7 @@
                 :no-expire nil}})
 
 (def spoof-session-request
-     {:session {:logged-in-user {:username "mallory" :password "hacked"}
+     {:session {:logged-in-user {"username" "mallory" "password" "hacked"}
                 :time-of-last-request 0
                 :no-expire true}})
 
@@ -135,15 +135,15 @@
       (let [resp (expect-david-handler base-login-request)]
         (assert-login resp)))
     (testing "No such user"
-      (let [resp (expect-anon-handler (merge base-login-request {:form-params {:username "divad" :password "snowy"}}))]
+      (let [resp (expect-anon-handler (merge base-login-request {:form-params {"username" "divad" "password" "snowy"}}))]
         (is (= resp {:session {:time-of-last-request 123 :flash-message "Incorrect credentials"}}))))
     (testing "Bad password"
-      (let [resp (expect-anon-handler (merge base-login-request {:form-params {:username "david" :password "abcabc"}}))]
+      (let [resp (expect-anon-handler (merge base-login-request {:form-params {"username" "david" "password" "abcabc"}}))]
         (is (= resp {:session {:time-of-last-request 123 :flash-message "Incorrect credentials"}}))))))
 
 (deftest test-remember-me
   (binding [*curr-time* fake-timer]
-    (let [remember-me-req (merge-with merge base-login-request {:form-params {:remember-me true}})
+    (let [remember-me-req (merge-with merge base-login-request {:form-params {"remember-me" true}})
           resp (expect-david-handler remember-me-req)]
       (assert-login resp {:session {:no-expire true}}))))
 
@@ -153,7 +153,7 @@
   (testing "Cannot over-ride session with per-req auth"
     (binding [*curr-time* fake-timer]
       (let [resp (expect-david-handler (merge base-session-request single-auth-request))]
-        (is (= resp {:session {:logged-in-user {:username "david", :password "snowy"} :time-of-last-request 123}}))))))
+        (is (= resp {:session {:logged-in-user {"username" "david", "password" "snowy"} :time-of-last-request 123}}))))))
 
 (deftest test-session
   (binding [*curr-time* fake-timer]
