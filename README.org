@@ -1,5 +1,8 @@
 * Ring Authentication Middleware
 
+This module implements robust generic authentication middleware for
+ring applications.
+
 See ./documentation/specification.pdf
 
 * Usage
